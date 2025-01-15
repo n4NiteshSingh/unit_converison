@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<nav>
+    <a href="../">Home</a>
+    <a href="../unit_conversion.html">Unit conversion</a>
+    <a href="../about.html">About</a>
+</nav>
+
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Converter with Tabs</title>
+    <!--<link rel="stylesheet" href="/static/styles.css"> -->
+    <style>
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            background: #f1f1f1;
+            margin-right: 5px;
+        }
+
+        .tab.active {
+            background: white;
+            border-top: 2px solid #007BFF;
+        }
+
+        .tab-content {
+            display: none;
+            border: 1px solid #ccc;
+            padding: 20px;
+            background: white;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Unit Converter</h1>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs">
+            <div class="tab active" data-target="length-converter">Length Converter</div>
+            <div class="tab" data-target="energy-converter">Energy Converter</div>
+            <div class="tab" data-target="frequency-converter">Frequency Converter</div>
+        </div>
+
+        <!-- Tabs Content -->
+        <div id="length-converter" class="tab-content active">
+            <form id="length-converter-form">
+                <label for="length-input-unit">Input Unit:</label>
+                <select id="length-input-unit" name="input-unit">
+                    <option value="nm">nm</option>
+                    <option value="µm">µm</option>
+                </select>
+
+                <label for="length-input-value">Input Value:</label>
+                <input type="number" id="length-input-value" name="input-value" min="0" step="0.0001" required>
+
+                <button type="submit">Convert</button>
+            </form>
+            <div id="length-results"></div>
+        </div>
+
+        <div id="energy-converter" class="tab-content">
+            <form id="energy-converter-form">
+                <label for="energy-input-unit">Input Unit:</label>
+                <select id="energy-input-unit" name="input-unit">
+                    <option value="eV">eV</option>
+                    <option value="meV">meV</option>
+                </select>
+
+                <label for="energy-input-value">Input Value:</label>
+                <input type="number" id="energy-input-value" name="input-value" min="0" step="0.0001" required>
+
+                <button type="submit">Convert</button>
+            </form>
+            <div id="energy-results"></div>
+        </div>
+
+        <div id="frequency-converter" class="tab-content">
+            <form id="frequency-converter-form">
+                <label for="frequency-input-unit">Input Unit:</label>
+                <select id="frequency-input-unit" name="input-unit">
+                    <option value="THz">THz</option>
+                    <option value="fs">fs</option>
+                    <option value="ps">ps</option>
+                </select>
+
+                <label for="frequency-input-value">Input Value:</label>
+                <input type="number" id="frequency-input-value" name="input-value" min="0" step="0.0001" required>
+
+                <button type="submit">Convert</button>
+            </form>
+            <div id="frequency-results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tab functionality
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs and tab contents
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(tc => tc.classList.remove('active'));
+
+                // Add active class to clicked tab and corresponding content
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.target).classList.add('active');
+            });
+        });
+
+        // Add conversion logic for each form
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const inputUnit = form.querySelector('select').value;
+                const inputValue = form.querySelector('input').value;
+                const resultsDiv = form.nextElementSibling;
+
+                const response = await fetch("/convert", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ input_unit: inputUnit, input_value: inputValue }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    resultsDiv.innerHTML = Object.entries(data)
+                        .map(([unit, value]) => `<p>${unit}: ${value.toFixed(6)}</p>`)
+                        .join("");
+                } else {
+                    resultsDiv.innerHTML = `<p>Error: ${data.error}</p>`;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
